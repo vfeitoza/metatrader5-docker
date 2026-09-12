@@ -1,0 +1,16 @@
+# SSH keys / credentials
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Claude Code
+.claude/
+
+# Logs and temp files
+*.log
+*.tmp
+*.zip
+
+# Internal changelog (not meant for the public repo)
+CHANGELOG.md

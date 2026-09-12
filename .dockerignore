@@ -1,0 +1,6 @@
+.git
+.claude/
+CHANGELOG.md
+RESUME_DOCKER_PHASE.md
+*.md
+!README.md
