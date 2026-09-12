@@ -14,3 +14,6 @@
 
 # Internal changelog (not meant for the public repo)
 CHANGELOG.md
+
+# Session continuity prompt (private, not for the public repo)
+NEXT_SESSION.md

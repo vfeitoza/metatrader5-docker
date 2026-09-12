@@ -1,6 +1,7 @@
 .git
 .claude/
 CHANGELOG.md
+NEXT_SESSION.md
 RESUME_DOCKER_PHASE.md
 *.md
 !README.md
