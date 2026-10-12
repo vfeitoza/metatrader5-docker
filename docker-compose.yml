@@ -1,0 +1,40 @@
+services:
+  mt5:
+    build: .
+    image: mt5:latest
+    shm_size: 512m
+    ports:
+      - "3389:3389"   # RDP
+    volumes:
+      - mt5data:/home/trader/.mt5
+    environment:
+      TRADER_PASS: "${TRADER_PASS:-trader@123}"
+      AUTOSTART_MT5: "true"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/healthcheck.sh"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+
+  bot:
+    build:
+      context: ../mt5_api
+      dockerfile: Dockerfile.bot
+    depends_on:
+      mt5:
+        condition: service_healthy
+    environment:
+      SERVTEC_API_KEY: "${SERVTEC_API_KEY:-}"
+      BOT_CONFIG: "/app/config/config.yaml"
+    volumes:
+      - ../mt5_api/config:/app/config:ro
+      - botlogs:/app/logs
+    command: ["python", "bot.py", "--config", "/app/config/config.yaml"]
+    restart: unless-stopped
+    network_mode: "service:mt5"  # bot vê EA em 127.0.0.1:5555
+
+volumes:
+  mt5data:
+  botlogs:
