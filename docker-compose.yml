@@ -2,14 +2,16 @@ services:
   mt5:
     build: .
     image: mt5:latest
-    shm_size: 512m
+    shm_size: 1512m
     ports:
       - "3389:3389"   # RDP
+      - "5555:5555"   # Bridge EA <-> bot (TCP 5555)
     volumes:
-      - mt5data:/home/trader/.mt5
+      - ./conteudo:/home/trader/.mt5
     environment:
       TRADER_PASS: "${TRADER_PASS:-trader@123}"
       AUTOSTART_MT5: "true"
+      RDP_RESOLUTION: "${RDP_RESOLUTION:-1920x1080}"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "/usr/local/bin/healthcheck.sh"]
@@ -30,7 +32,7 @@ services:
       BOT_CONFIG: "/app/config/config.yaml"
     volumes:
       - ../mt5_api/config:/app/config:ro
-      - botlogs:/app/logs
+      - ./logs:/app/logs
     command: ["python", "bot.py", "--config", "/app/config/config.yaml"]
     restart: unless-stopped
     network_mode: "service:mt5"  # bot vê EA em 127.0.0.1:5555

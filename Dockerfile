@@ -42,8 +42,13 @@ RUN update-alternatives --set x-session-manager /usr/bin/startlxde
 
 # ---------------------------------------------------------
 # Non-root trader user (Wine must never run as root)
+# UID 1000 = compat com host vfeitoza (1000:1000). Base Ubuntu ja tem
+# user 'ubuntu' com 1000 — remove antes para liberar o UID/GID.
 # ---------------------------------------------------------
-RUN useradd -m -s /bin/bash trader
+RUN if id ubuntu >/dev/null 2>&1; then userdel -r ubuntu 2>/dev/null || userdel ubuntu 2>/dev/null || true; fi && \
+    if getent group 1000 >/dev/null; then groupdel "$(getent group 1000 | cut -d: -f1)" 2>/dev/null || true; fi && \
+    useradd -u 1000 -m -s /bin/bash trader && \
+    id trader
 
 # ---------------------------------------------------------
 # MT5 install (build-time, as trader) — same logic as bootstrap.sh
@@ -101,9 +106,14 @@ COPY healthcheck.sh /usr/local/bin/healthcheck.sh
 COPY mt5-autostart.sh /usr/local/bin/mt5-autostart.sh
 COPY mt5-launch.sh /usr/local/bin/mt5-launch.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/healthcheck.sh /usr/local/bin/mt5-autostart.sh /usr/local/bin/mt5-launch.sh
+# Preserve a template copy for bind-mount seeding.
+# Docker auto-populates *named* volumes from image content, but *bind mounts*
+# like ./conteudo:/home/trader/.mt5 start empty and hide the build-time files.
+# entrypoint.sh seeds the bind mount from here on first start.
+RUN cp -a /home/trader/.mt5 /opt/mt5-template && chown -R trader:trader /opt/mt5-template
 
 VOLUME ["/home/trader/.mt5"]
-EXPOSE 3389
+EXPOSE 3389 5555
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
     CMD /usr/local/bin/healthcheck.sh
